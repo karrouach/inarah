@@ -443,10 +443,16 @@
       btn.disabled = true;
       btn.querySelector('.btn-text').textContent = 'Submitting…';
 
-      setTimeout(() => {
+      fetch('https://script.google.com/macros/s/AKfycbwkhhbkHQE_jMINEaiaxJlVhGKyO-LTWxMXla8RzOY2afhy0CeUQ9RjMaep7eajQNgm/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, lastName, whatsapp, email })
+      })
+      .finally(() => {
         form.style.display = 'none';
         successScreen.classList.add('visible');
-      }, 800);
+      });
     });
 
     function highlightEmpty() {
