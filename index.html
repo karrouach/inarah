@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>INARAH — Be the First to Know</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #9a7da3;
+      --purple-light: #c3a8d8;
+      --cream: #f5f2f8;
+      --dark-card: rgba(8, 5, 12, 0.68);
+      --border: rgba(154, 125, 163, 0.30);
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: #0c0804;
+      color: var(--cream);
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      overflow-x: hidden;
+    }
+
+    /* ── Full-screen background video ── */
+    .bg-video-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bg-video-wrap video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .bg-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(8, 5, 12, 0.50) 0%,
+        rgba(8, 5, 12, 0.38) 40%,
+        rgba(8, 5, 12, 0.58) 100%
+      );
+    }
+
+    /* ── Page container — hidden until intro finishes ── */
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 500px;
+      opacity: 0;
+    }
+
+    /* Staggered children */
+    .header,
+    .card,
+    .footer {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+
+    /* JS adds .reveal which triggers these */
+    .container.reveal { opacity: 1; }
+
+    .container.reveal .header {
+      animation: fadeUp 0.9s ease 0s forwards;
+    }
+    .container.reveal .card {
+      animation: fadeUp 0.9s ease 0.35s forwards;
+    }
+    .container.reveal .footer {
+      animation: fadeUp 0.9s ease 0.6s forwards;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 44px;
+    }
+
+    .logo-svg {
+      width: clamp(180px, 55vw, 260px);
+      height: auto;
+      filter: drop-shadow(0 1px 12px rgba(0,0,0,0.9)) drop-shadow(0 0 28px rgba(0,0,0,0.7));
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px auto 0;
+      width: 200px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--purple));
+    }
+    .divider::after { background: linear-gradient(to left, transparent, var(--purple)); }
+
+    .divider-diamond {
+      width: 5px;
+      height: 5px;
+      background: var(--purple);
+      transform: rotate(45deg);
+      flex-shrink: 0;
+    }
+
+    .tagline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(17px, 4.5vw, 22px);
+      font-style: italic;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: rgba(245, 242, 248, 0.65);
+      text-transform: lowercase;
+      margin-top: 16px;
+      text-shadow: 0 1px 10px rgba(0,0,0,0.9);
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--dark-card);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border);
+      padding: 44px 40px 48px;
+      position: relative;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--purple), transparent);
+    }
+
+    .card-label {
+      font-size: 11px;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: var(--purple);
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    /* ── Form ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 22px;
+    }
+
+    .field:last-of-type { margin-bottom: 0; }
+
+    label {
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(154, 125, 163, 0.8);
+      margin-bottom: 9px;
+    }
+
+    input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(245, 242, 248, 0.18);
+      color: var(--cream);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px;
+      font-weight: 300;
+      padding: 10px 0;
+      outline: none;
+      transition: border-color 0.3s ease;
+      width: 100%;
+      -webkit-appearance: none;
+      border-radius: 0;
+    }
+
+    input::placeholder { color: rgba(245, 242, 248, 0.22); font-size: 15px; }
+    input:focus { border-bottom-color: var(--purple); }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px #080510 inset;
+      -webkit-text-fill-color: var(--cream);
+    }
+
+    .fields-bottom { margin-top: 22px; }
+
+    /* ── Submit ── */
+    .submit-wrap { margin-top: 36px; text-align: center; }
+
+    button[type="submit"] {
+      background: transparent;
+      border: 1px solid var(--purple);
+      color: var(--purple);
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.38em;
+      padding: 16px 52px;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button[type="submit"]::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--purple);
+      transform: translateX(-100%);
+      transition: transform 0.35s ease;
+      z-index: 0;
+    }
+
+    button[type="submit"]:hover::after { transform: translateX(0); }
+
+    button[type="submit"] .btn-text {
+      position: relative;
+      z-index: 1;
+      transition: color 0.35s ease;
+    }
+
+    button[type="submit"]:hover .btn-text { color: #08050c; }
+    button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Success screen ── */
+    .success-screen { display: none; text-align: center; padding: 8px 0; }
+
+    .success-screen.visible {
+      display: block;
+      animation: fadeUp 0.7s ease forwards;
+    }
+
+    .success-icon {
+      width: 58px;
+      height: 58px;
+      border: 1px solid var(--purple);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+
+    .success-icon svg {
+      width: 22px; height: 22px;
+      stroke: var(--purple);
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .success-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(30px, 7vw, 40px);
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--cream);
+      margin-bottom: 20px;
+      line-height: 1.15;
+    }
+
+    /* Success body — single flowing block, no forced breaks */
+    .success-message {
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      color: rgba(245, 242, 248, 0.55);
+      line-height: 1.85;
+      max-width: 340px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .success-message p { margin-bottom: 12px; }
+    .success-message p:last-child { margin-bottom: 0; }
+    .success-message strong { color: var(--purple); font-weight: 400; }
+
+    .success-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--purple);
+      margin: 18px auto;
+      opacity: 0.5;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      color: rgba(245, 242, 248, 0.22);
+      text-transform: uppercase;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+    }
+
+    /* ── Keyframes ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 420px) {
+      .card { padding: 36px 24px 40px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .tagline { font-size: clamp(15px, 4vw, 18px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Product video background -->
+  <div class="bg-video-wrap">
+    <video id="bgVideo" autoplay muted loop playsinline>
+      <source src="product.mov" type="video/mp4" />
+      <source src="product.mp4" type="video/mp4" />
+    </video>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <div class="container" id="mainContainer">
+
+    <header class="header">
+      <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 311.81 50.54" aria-label="INARAH">
+        <path fill="#9a7da3" d="M0,50.2c2.24-4.22,2.72-6.53,2.72-12.18V12.86C2.72,7.21,2.24,4.9,0,.68v-.14h13.26v.14c-2.24,4.22-2.72,6.53-2.72,12.18v25.17c0,5.65.48,7.96,2.72,12.18v.14H0v-.14Z"/>
+        <path fill="#9a7da3" d="M38.3,7.69l.27,29.11c0,6.12.88,8.64,4.69,13.4v.14h-10.48v-.14c3.4-4.76,4.15-7.28,4.15-13.4V10.14c-.27-4.42-1.5-6.46-5.31-9.46v-.14h10.88l28.5,38.7-.2-25.17c-.07-6.12-.88-8.64-4.15-13.4v-.14h9.79v.14c-3.26,4.76-4.15,7.28-4.15,13.4v36.25l-2.45.2L38.3,7.69Z"/>
+        <path fill="#9a7da3" d="M100.06,50.33h-9.18v-.14c3.26-3.4,4.49-6.46,6.46-11.7L111.96,0h1.36l14.9,39.25c2.24,5.92,3.81,8.5,6.19,10.95v.14h-13.54v-.14c1.16-1.97,1.16-6.26-.75-11.29l-2.79-7.35h-15.98l-1.43,3.81c-3.06,7.96-1.29,12.58.14,14.83v.14ZM109.38,10.54l-7.48,19.66h14.9l-7.41-19.66Z"/>
+        <path fill="#9a7da3" d="M151.89,50.2c2.18-4.22,2.72-6.6,2.72-12.18V12.86c0-5.65-.54-7.96-2.72-12.18v-.14h17.34c12.31,0,17.21,4.76,17.21,11.9,0,5.65-3.06,10.41-9.86,12.58l8.09,15.85c2.92,5.71,4.35,7.21,7.89,8.98v.48h-11.97l-12.24-24.01h-5.92v11.7c0,5.65.48,7.96,2.72,12.18v.14h-13.26v-.14ZM162.44,1.97v22.99h5.31c8.57,0,10.75-5.92,10.75-12.58,0-6.19-2.45-10.48-10.75-10.48-.88,0-2.65,0-5.31.07Z"/>
+        <path fill="#9a7da3" d="M215.15,50.33h-9.18v-.14c3.26-3.4,4.49-6.46,6.46-11.7L227.06,0h1.36l14.9,39.25c2.24,5.92,3.81,8.5,6.19,10.95v.14h-13.54v-.14c1.16-1.97,1.16-6.26-.75-11.29l-2.79-7.35h-15.98l-1.43,3.81c-3.06,7.96-1.29,12.58.14,14.83v.14ZM224.47,10.54l-7.48,19.66h14.9l-7.41-19.66Z"/>
+        <path fill="#9a7da3" d="M266.99,50.2c2.18-4.22,2.72-6.6,2.72-12.18V12.86c0-5.65-.54-7.96-2.72-12.18v-.14h13.26v.14c-2.24,4.22-2.72,6.53-2.72,12.18v11.16h23.74v-11.16c0-5.58-.48-7.96-2.72-12.18v-.14h13.26v.14c-2.18,4.22-2.72,6.53-2.72,12.18v25.17c0,5.65.54,7.96,2.72,12.18v.14h-13.26v-.14c2.24-4.22,2.72-6.6,2.72-12.18v-12.65h-23.74v12.65c0,5.65.48,7.96,2.72,12.18v.14h-13.26v-.14Z"/>
+      </svg>
+
+      <div class="divider"><div class="divider-diamond"></div></div>
+      <p class="tagline">built for the muslim girl who never stops</p>
+    </header>
+
+    <div class="card">
+      <p class="card-label">Be the first to know</p>
+
+      <form id="signupForm" novalidate>
+        <div class="form-row">
+          <div class="field">
+            <label for="firstName">First name</label>
+            <input type="text" id="firstName" name="firstName" placeholder="Your first name" required autocomplete="given-name" />
+          </div>
+          <div class="field">
+            <label for="lastName">Last name</label>
+            <input type="text" id="lastName" name="lastName" placeholder="Your last name" required autocomplete="family-name" />
+          </div>
+        </div>
+
+        <div class="fields-bottom">
+          <div class="field">
+            <label for="whatsapp">WhatsApp number</label>
+            <input type="tel" id="whatsapp" name="whatsapp" placeholder="+1 234 567 8900" required autocomplete="tel" />
+          </div>
+          <div class="field" style="margin-top: 22px;">
+            <label for="email">Email address</label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+        </div>
+
+        <div class="submit-wrap">
+          <button type="submit">
+            <span class="btn-text">Secure my set</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Success screen — clean flowing copy, no forced line-breaks -->
+      <div class="success-screen" id="successScreen">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2 class="success-title">You're on the list.</h2>
+        <div class="success-message">
+          <p>Welcome to <strong>Inarah</strong>. Your compact prayer set is almost here.</p>
+          <div class="success-divider"></div>
+          <p>We'll notify you on WhatsApp &amp; email the moment the drop goes live.</p>
+          <p>Pray everywhere &amp; anywhere — soon.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="footer">inarah.thebrand &nbsp;·&nbsp; 2026</p>
+  </div>
+
+  <script>
+    /* ── Intro: show video for 4.5s, then fade in content ── */
+    setTimeout(function () {
+      document.getElementById('mainContainer').classList.add('reveal');
+    }, 1000);
+
+    /* ── Form logic ── */
+    const form          = document.getElementById('signupForm');
+    const successScreen = document.getElementById('successScreen');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName  = document.getElementById('lastName').value.trim();
+      const whatsapp  = document.getElementById('whatsapp').value.trim();
+      const email     = document.getElementById('email').value.trim();
+
+      if (!firstName || !lastName || !whatsapp || !email) { highlightEmpty(); return; }
+      if (!isValidEmail(email)) { shake(document.getElementById('email')); return; }
+
+      const btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.querySelector('.btn-text').textContent = 'Submitting…';
+
+      setTimeout(() => {
+        form.style.display = 'none';
+        successScreen.classList.add('visible');
+      }, 800);
+    });
+
+    function highlightEmpty() {
+      ['firstName', 'lastName', 'whatsapp', 'email'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el.value.trim()) shake(el);
+      });
+    }
+
+    function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+    function shake(el) {
+      el.style.borderBottomColor = '#c0392b';
+      el.animate([
+        { transform: 'translateX(0)' },
+        { transform: 'translateX(-5px)' },
+        { transform: 'translateX(5px)' },
+        { transform: 'translateX(-4px)' },
+        { transform: 'translateX(4px)' },
+        { transform: 'translateX(0)' }
+      ], { duration: 350, easing: 'ease-in-out' });
+      setTimeout(() => { el.style.borderBottomColor = ''; }, 2000);
+    }
+  </script>
+</body>
+</html>
