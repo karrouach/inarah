@@ -216,6 +216,59 @@
 
     .fields-bottom { margin-top: 22px; }
 
+    /* ── Phone input ── */
+    .phone-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 0;
+      border-bottom: 1px solid rgba(245, 242, 248, 0.18);
+      transition: border-color 0.3s ease;
+    }
+
+    .phone-wrap:focus-within { border-bottom-color: var(--purple); }
+
+    .phone-wrap select {
+      background: transparent;
+      border: none;
+      border-right: 1px solid rgba(245, 242, 248, 0.15);
+      color: var(--cream);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px;
+      font-weight: 300;
+      padding: 10px 10px 10px 0;
+      outline: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      width: auto;
+      flex-shrink: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(154,125,163,0.7)'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+      padding-right: 22px;
+    }
+
+    .phone-wrap select option {
+      background: #0d0b14;
+      color: var(--cream);
+    }
+
+    .phone-wrap input {
+      border: none;
+      border-bottom: none;
+      padding-left: 10px;
+      flex: 1;
+    }
+
+    .phone-wrap input:focus { border-bottom-color: transparent; }
+
+    .phone-hint {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: rgba(154, 125, 163, 0.5);
+      margin-top: 6px;
+    }
+
     /* ── Submit ── */
     .submit-wrap { margin-top: 36px; text-align: center; }
 
@@ -386,7 +439,25 @@
         <div class="fields-bottom">
           <div class="field">
             <label for="whatsapp">WhatsApp number</label>
-            <input type="tel" id="whatsapp" name="whatsapp" placeholder="+1 234 567 8900" required autocomplete="tel" />
+            <div class="phone-wrap" id="phoneWrap">
+              <select id="dialCode" aria-label="Country code">
+                <option value="+212">🇲🇦 +212</option>
+                <option value="+33">🇫🇷 +33</option>
+                <option value="+1">🇺🇸 +1</option>
+                <option value="+44">🇬🇧 +44</option>
+                <option value="+49">🇩🇪 +49</option>
+                <option value="+31">🇳🇱 +31</option>
+                <option value="+32">🇧🇪 +32</option>
+                <option value="+34">🇪🇸 +34</option>
+                <option value="+39">🇮🇹 +39</option>
+                <option value="+971">🇦🇪 +971</option>
+                <option value="+966">🇸🇦 +966</option>
+                <option value="+213">🇩🇿 +213</option>
+                <option value="+216">🇹🇳 +216</option>
+              </select>
+              <input type="tel" id="whatsapp" name="whatsapp" placeholder="6XXXXXXXX" maxlength="9" autocomplete="tel" inputmode="numeric" />
+            </div>
+            <p class="phone-hint">8 digits after the country code</p>
           </div>
           <div class="field" style="margin-top: 22px;">
             <label for="email">Email address</label>
@@ -429,14 +500,31 @@
     const form          = document.getElementById('signupForm');
     const successScreen = document.getElementById('successScreen');
 
+    /* Only allow digits in the phone field */
+    document.getElementById('whatsapp').addEventListener('input', function () {
+      this.value = this.value.replace(/\D/g, '');
+    });
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      const firstName = document.getElementById('firstName').value.trim();
-      const lastName  = document.getElementById('lastName').value.trim();
-      const whatsapp  = document.getElementById('whatsapp').value.trim();
-      const email     = document.getElementById('email').value.trim();
+      const firstName  = document.getElementById('firstName').value.trim();
+      const lastName   = document.getElementById('lastName').value.trim();
+      const dialCode   = document.getElementById('dialCode').value;
+      const localNum   = document.getElementById('whatsapp').value.trim();
+      const email      = document.getElementById('email').value.trim();
+      const whatsapp   = dialCode + localNum;
 
-      if (!firstName || !lastName || !whatsapp || !email) { highlightEmpty(); return; }
+      /* Basic empty check */
+      if (!firstName || !lastName || !localNum || !email) { highlightEmpty(localNum); return; }
+
+      /* 8-digit check */
+      if (localNum.length !== 8) {
+        shake(document.getElementById('whatsapp'));
+        document.getElementById('phoneWrap').style.borderBottomColor = '#c0392b';
+        setTimeout(() => { document.getElementById('phoneWrap').style.borderBottomColor = ''; }, 2000);
+        return;
+      }
+
       if (!isValidEmail(email)) { shake(document.getElementById('email')); return; }
 
       const btn = form.querySelector('button[type="submit"]');
@@ -455,11 +543,12 @@
       });
     });
 
-    function highlightEmpty() {
-      ['firstName', 'lastName', 'whatsapp', 'email'].forEach(id => {
+    function highlightEmpty(localNum) {
+      ['firstName', 'lastName', 'email'].forEach(id => {
         const el = document.getElementById(id);
         if (!el.value.trim()) shake(el);
       });
+      if (!localNum) shake(document.getElementById('whatsapp'));
     }
 
     function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
