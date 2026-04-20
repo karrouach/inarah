@@ -455,9 +455,9 @@
                 <option value="+213">🇩🇿 +213</option>
                 <option value="+216">🇹🇳 +216</option>
               </select>
-              <input type="tel" id="whatsapp" name="whatsapp" placeholder="6XXXXXXXX" maxlength="9" autocomplete="tel" inputmode="numeric" />
+              <input type="tel" id="whatsapp" name="whatsapp" placeholder="6XXXXXXXXX" maxlength="10" autocomplete="tel" inputmode="numeric" />
             </div>
-            <p class="phone-hint">8 digits after the country code</p>
+            <p class="phone-hint">9 digits after the country code</p>
           </div>
           <div class="field" style="margin-top: 22px;">
             <label for="email">Email address</label>
@@ -518,7 +518,7 @@
       if (!firstName || !lastName || !localNum || !email) { highlightEmpty(localNum); return; }
 
       /* 8-digit check */
-      if (localNum.length !== 8) {
+      if (localNum.length !== 9) {
         shake(document.getElementById('whatsapp'));
         document.getElementById('phoneWrap').style.borderBottomColor = '#c0392b';
         setTimeout(() => { document.getElementById('phoneWrap').style.borderBottomColor = ''; }, 2000);
